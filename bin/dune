@@ -1,0 +1,7 @@
+(executables
+  (public_names day1 day2 day3)
+  (names day1 day2 day3)
+  (libraries aoc core)
+  (preprocess (pps ppx_jane))
+  (flags (:standard -w -32-26-69)))
+
