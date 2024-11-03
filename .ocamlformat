@@ -13,4 +13,6 @@ wrap-fun-args=true
 let-and=sparse
 dock-collection-brackets=true
 if-then-else=fit-or-vertical
+type-decl=sparse
+space-around-records=true
 margin=100
