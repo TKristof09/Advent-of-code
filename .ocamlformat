@@ -1,0 +1,16 @@
+profile=ocamlformat
+
+cases-exp-indent=4
+extension-indent=4
+function-indent=4
+let-binding-indent=4
+match-indent=4
+stritem-extension-indent=4
+type-decl-indent=4
+break-cases=fit
+cases-matching-exp-indent=normal
+wrap-fun-args=true
+let-and=sparse
+dock-collection-brackets=true
+if-then-else=fit-or-vertical
+margin=100
