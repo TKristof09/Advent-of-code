@@ -8,5 +8,4 @@ let read_to_list_filtered filename =
 
 let read_to_array filename = Array.of_list @@ read_to_list filename
 
-let read_to_array_filtered filename =
-    Array.of_list @@ read_to_list_filtered filename
+let read_to_array_filtered filename = Array.of_list @@ read_to_list_filtered filename

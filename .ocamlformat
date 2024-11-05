@@ -7,7 +7,6 @@ let-binding-indent=4
 match-indent=4
 stritem-extension-indent=4
 type-decl-indent=4
-break-cases=fit
 cases-matching-exp-indent=normal
 wrap-fun-args=true
 let-and=sparse
@@ -15,4 +14,8 @@ dock-collection-brackets=true
 if-then-else=fit-or-vertical
 type-decl=sparse
 space-around-records=true
+break-cases=all
+
+break-infix=fit-or-vertical
+
 margin=100

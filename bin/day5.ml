@@ -1,8 +1,17 @@
 open Core
 
-type range = {s: int; l: int} [@@deriving show]
+type range = {
+      s: int
+    ; l: int
+  }
+[@@deriving show]
 
-type range_map = {s_start: int; length: int; d_start: int} [@@deriving show]
+type range_map = {
+      s_start: int
+    ; length: int
+    ; d_start: int
+  }
+[@@deriving show]
 
 type almanac = {
       seeds: int list
@@ -37,7 +46,7 @@ let parse_maps lines =
       ~f:(fun acc line ->
         let nums = String.split line ~on:' ' |> List.filter_map ~f:Int.of_string_opt in
         match nums with
-        | [ds; ss; l] -> Continue ({s_start= ss; length= l; d_start= ds} :: acc)
+        | [ds; ss; l] -> Continue ({ s_start= ss; length= l; d_start= ds } :: acc)
         | _ -> Stop acc )
       ~finish:(fun acc -> acc)
 
@@ -51,16 +60,16 @@ let parse_almanac lines =
                 parse_maps t |> List.sort ~compare:(fun r r' -> Int.compare r.s_start r'.s_start)
             in
             match line with
-            | "seed-to-soil map:" -> aux t {almanac with seed_to_soil= ranges}
-            | "soil-to-fertilizer map:" -> aux t {almanac with soil_to_fert= ranges}
-            | "fertilizer-to-water map:" -> aux t {almanac with fert_to_water= ranges}
-            | "water-to-light map:" -> aux t {almanac with water_to_light= ranges}
-            | "light-to-temperature map:" -> aux t {almanac with light_to_temp= ranges}
-            | "temperature-to-humidity map:" -> aux t {almanac with temp_to_hum= ranges}
-            | "humidity-to-location map:" -> aux t {almanac with hum_to_loc= ranges}
+            | "seed-to-soil map:" -> aux t { almanac with seed_to_soil= ranges }
+            | "soil-to-fertilizer map:" -> aux t { almanac with soil_to_fert= ranges }
+            | "fertilizer-to-water map:" -> aux t { almanac with fert_to_water= ranges }
+            | "water-to-light map:" -> aux t { almanac with water_to_light= ranges }
+            | "light-to-temperature map:" -> aux t { almanac with light_to_temp= ranges }
+            | "temperature-to-humidity map:" -> aux t { almanac with temp_to_hum= ranges }
+            | "humidity-to-location map:" -> aux t { almanac with hum_to_loc= ranges }
             | _ -> aux t almanac )
     in
-    aux lines {default_almanac with seeds}
+    aux lines { default_almanac with seeds }
 
 let map_num ranges n =
     List.fold_until ranges ~init:(-1)
@@ -80,8 +89,8 @@ let map_range ranges_map range =
           let e = min (cur_range.s + cur_range.l) (r.s_start + r.length) in
           let l = e - cur_range.s in
           Continue
-            ( {s= r.d_start + cur_range.s - r.s_start; l} :: acc
-            , {s= cur_range.s + l; l= cur_range.l - l} )
+            ( { s= r.d_start + cur_range.s - r.s_start; l } :: acc
+            , { s= cur_range.s + l; l= cur_range.l - l } )
         else
           Continue (acc, cur_range) )
       ~finish:(fun (acc, cur_range) -> if cur_range.l = 0 then acc else cur_range :: acc)
@@ -128,7 +137,7 @@ let rec get_seed_ranges seeds =
     match seeds with
     | [] -> []
     | [_] -> failwith "shouldnt happen"
-    | s :: l :: t -> {s; l} :: get_seed_ranges t
+    | s :: l :: t -> { s; l } :: get_seed_ranges t
 
 let () =
     let lines = Aoc.read_to_list "day5" in
