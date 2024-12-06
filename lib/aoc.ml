@@ -11,7 +11,7 @@ let read_to_array_filtered filename = Array.of_list @@ read_to_list_filtered fil
 
 module Pair = struct
   module T = struct
-    type t = int * int [@@deriving compare, sexp, show]
+    type t = int * int [@@deriving compare, sexp, hash, show]
   end
 
   include T

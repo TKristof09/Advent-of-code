@@ -1,6 +1,6 @@
 (executables
- (public_names day1 day2 day3 day4 day5)
- (names day1 day2 day3 day4 day5)
+ (public_names day1 day2 day3 day4 day5 day6)
+ (names day1 day2 day3 day4 day5 day6)
  (libraries aoc core re)
  (preprocess
   (pps ppx_jane ppx_deriving.show)))
