@@ -8,6 +8,27 @@ let read_to_list_filtered filename =
 
 let read_to_array filename = Array.of_list @@ read_to_list filename
 let read_to_array_filtered filename = Array.of_list @@ read_to_list_filtered filename
+let read_to_iter filename = read_to_list filename |> Iter.of_list
+
+let read_to_iter_filetered filename =
+    read_to_iter filename |> Iter.filter (fun s -> not (String.is_empty s))
+
+let split_list l ~on =
+    let open IterLabels in
+    of_list l
+    |> group_succ_by ~eq:(fun x y -> (not (on x)) && not (on y))
+    |> filter ~f:(function
+         | [] -> false
+         | h :: _ -> not (on h))
+    |> map ~f:List.rev
+
+let split_iter iter ~on =
+    iter
+    |> IterLabels.group_succ_by ~eq:(fun x y -> (not (on x)) && not (on y))
+    |> IterLabels.filter ~f:(function
+         | [] -> false
+         | h :: _ -> not (on h))
+    |> IterLabels.map ~f:List.rev
 
 module Pair = struct
   module T = struct
