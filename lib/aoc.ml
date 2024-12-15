@@ -47,4 +47,11 @@ let read_to_map filename filter =
         String.foldi line ~init:m ~f:(fun x m' c ->
             if filter c then Map.set m' ~key:(x, y) ~data:c else m'))
 
+let string_to_map lines filter =
+    List.foldi lines
+      ~init:(Map.empty (module Pair))
+      ~f:(fun y m line ->
+        String.foldi line ~init:m ~f:(fun x m' c ->
+            if filter c then Map.set m' ~key:(x, y) ~data:c else m'))
+
 let show_coord_map m = Printf.sprintf "%s" ([%derive.show: (Pair.t * char) list] (Map.to_alist m))
