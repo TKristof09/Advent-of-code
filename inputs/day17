@@ -1,0 +1,22 @@
+Register A: 53437164
+Register B: 0
+Register C: 0
+
+Program: 2,4,1,7,7,5,4,1,1,4,5,5,0,3,3,0
+
+
+b = A mod 8
+b = b xor 7 -- flip bits
+c = a / 2**b
+b = b xor c
+b = b xor 4
+print b mod 8
+a = a / 2**3
+jnz a 0
+
+
+--
+do {
+    print ((((A mod 8) xor 7) xor (A / 2 ** (A mod 8 xor 7))) xor 4) mod 8
+    A = A >> 3
+} while A > 0

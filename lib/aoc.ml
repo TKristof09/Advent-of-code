@@ -55,3 +55,17 @@ let string_to_map lines filter =
             if filter c then Map.set m' ~key:(x, y) ~data:c else m'))
 
 let show_coord_map m = Printf.sprintf "%s" ([%derive.show: (Pair.t * char) list] (Map.to_alist m))
+
+let show_binary =
+    let int_size = 63 in
+    let open Stdlib in
+    let buf = Bytes.create int_size in
+    fun n ->
+      for i = 0 to int_size - 1 do
+        let pos = int_size - 1 - i in
+        Bytes.set buf pos (if n land (1 lsl i) != 0 then '1' else '0')
+      done;
+      (* skip leading zeros *)
+      match Bytes.index_opt buf '1' with
+      | None -> "0b0"
+      | Some i -> "0b" ^ Bytes.sub_string buf i (int_size - i)
