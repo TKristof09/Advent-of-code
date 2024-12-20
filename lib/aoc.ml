@@ -37,6 +37,7 @@ module Pair = struct
 
   include T
   include Comparable.Make_plain (T)
+  include Hashable.Make_plain (T)
 end
 
 let read_to_map filename filter =
