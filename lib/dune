@@ -1,0 +1,5 @@
+(library
+ (name aoc)
+ (libraries core iter)
+ (preprocess
+  (pps ppx_jane ppx_deriving.show)))
