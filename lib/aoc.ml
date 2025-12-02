@@ -70,3 +70,10 @@ let show_binary =
       match Bytes.index_opt buf '1' with
       | None -> "0b0"
       | Some i -> "0b" ^ Bytes.sub_string buf i (int_size - i)
+
+let time_fn f =
+    let t_start = Time_ns.now () in
+    f ();
+    let t_end = Time_ns.now () in
+    let dur = Time_ns.diff t_end t_start |> Time_ns.Span.to_ms in
+    Printf.printf "Execution took %.2f ms\n" dur
