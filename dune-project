@@ -19,7 +19,7 @@
  (name aoc)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune core re iter imagelib ppx_deriving)
+ (depends ocaml dune core re iter imagelib ppx_deriving pcre)
  (tags
   (topics "to describe" your project)))
 

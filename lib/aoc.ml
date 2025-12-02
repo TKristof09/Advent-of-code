@@ -18,16 +18,16 @@ let split_list l ~on =
     of_list l
     |> group_succ_by ~eq:(fun x y -> (not (on x)) && not (on y))
     |> filter ~f:(function
-         | [] -> false
-         | h :: _ -> not (on h))
+      | [] -> false
+      | h :: _ -> not (on h))
     |> map ~f:List.rev
 
 let split_iter iter ~on =
     iter
     |> IterLabels.group_succ_by ~eq:(fun x y -> (not (on x)) && not (on y))
     |> IterLabels.filter ~f:(function
-         | [] -> false
-         | h :: _ -> not (on h))
+      | [] -> false
+      | h :: _ -> not (on h))
     |> IterLabels.map ~f:List.rev
 
 module Pair = struct
