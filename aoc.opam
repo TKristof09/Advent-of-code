@@ -17,6 +17,7 @@ depends: [
   "iter"
   "imagelib"
   "ppx_deriving"
+  "pcre"
   "odoc" {with-doc}
 ]
 build: [
