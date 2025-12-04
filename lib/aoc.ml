@@ -77,3 +77,17 @@ let time_fn f =
     let t_end = Time_ns.now () in
     let dur = Time_ns.diff t_end t_start |> Time_ns.Span.to_ms in
     Printf.printf "Execution took %.2f ms\n" dur
+
+let eight_neighbours x y =
+    [
+      (x, y - 1);
+      (x, y + 1);
+      (x - 1, y);
+      (x + 1, y);
+      (x - 1, y - 1);
+      (x - 1, y + 1);
+      (x + 1, y - 1);
+      (x + 1, y + 1);
+    ]
+
+let four_neighbours x y = [ (x, y - 1); (x, y + 1); (x - 1, y); (x + 1, y) ]
