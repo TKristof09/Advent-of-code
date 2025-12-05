@@ -10,7 +10,7 @@ let read_to_array filename = Array.of_list @@ read_to_list filename
 let read_to_array_filtered filename = Array.of_list @@ read_to_list_filtered filename
 let read_to_iter filename = read_to_list filename |> Iter.of_list
 
-let read_to_iter_filetered filename =
+let read_to_iter_filtered filename =
     read_to_iter filename |> Iter.filter (fun s -> not (String.is_empty s))
 
 let split_list l ~on =
@@ -91,3 +91,14 @@ let eight_neighbours x y =
     ]
 
 let four_neighbours x y = [ (x, y - 1); (x, y + 1); (x - 1, y); (x + 1, y) ]
+
+let fold_pairs l ~init ~f =
+    let rec aux init l1 l2 =
+        match l2 with
+        | [] -> init
+        | h2 :: t2 -> aux (f init (List.hd_exn l1) h2) (List.tl_exn l1) t2
+    in
+    match l with
+    | [] -> init
+    | _ :: [] -> failwith "List must have at least 2 elements"
+    | _ :: t -> aux init l t

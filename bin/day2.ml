@@ -75,7 +75,7 @@ let solve1_fast () =
     |> Iter.of_list
     |> IterLabels.map ~f:parse_range
     |> IterLabels.flat_map_l ~f:split_range
-    |> IterLabels.filter ~f:(fun (start, stop) -> String.length start mod 2 = 0)
+    |> IterLabels.filter ~f:(fun (start, _) -> String.length start mod 2 = 0)
     |> IterLabels.flat_map ~f:(fun (start, stop) ->
         let l = String.length start in
         get_repeating (start, stop) ~len_rep:(l / 2) ~len_full:l)
@@ -122,7 +122,7 @@ let solve2_fast () =
     |> Iter.of_list
     |> IterLabels.map ~f:parse_range
     |> IterLabels.flat_map_l ~f:split_range
-    |> IterLabels.filter ~f:(fun (start, stop) -> String.length start > 1)
+    |> IterLabels.filter ~f:(fun (start, _) -> String.length start > 1)
     |> IterLabels.flat_map ~f:(fun (start, stop) ->
         Iter.int_range ~start:1 ~stop:((String.length start + 1) / 2)
         |> IterLabels.flat_map ~f:(fun l ->
