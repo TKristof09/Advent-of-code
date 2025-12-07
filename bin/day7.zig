@@ -18,33 +18,49 @@ fn parseRow(T: type, s: []const u8) ?T {
         return value;
     }
 }
-fn solve(T: type, start: u8, rows: []T) u32 {
+fn solve(T: type, start: u8, rows: []const T) u32 {
     var cur_rays: T = @as(T, 1) << @intCast(start);
-    // std.debug.print("{b:0>256}\n", .{cur_rays});
     var count: u32 = 0;
     for (rows) |splitter_encoding| {
         const hits = (cur_rays & splitter_encoding);
         count += @popCount(hits);
         cur_rays = (cur_rays & ~hits) | (hits << 1 | hits >> 1);
-        // std.debug.print("{b:0>256}\n", .{cur_rays});
     }
     return count;
 }
-// noinline fn solve_v(start: u8, rows: []align(256) u256) u32 {
-//     var cur_rays: u256 = @as(u256, 1) << start;
-//     // std.debug.print("{b:0>256}\n", .{cur_rays});
-//     var count: u32 = 0;
-//     for (rows) |splitter_encoding| {
-//         const cur_rays_v: @Vector(4, u64) = @bitCast(cur_rays);
-//         const splitter_v: @Vector(4, u64) = @bitCast(splitter_encoding);
-//         const hits_v = (cur_rays_v & splitter_v);
-//         const hits: u256 = @bitCast(hits_v);
-//         count += @popCount(hits);
-//         cur_rays = @as(u256, @bitCast(cur_rays & ~hits)) | (hits << 1 | hits >> 1);
-//         // std.debug.print("{b:0>256}\n", .{cur_rays});
-//     }
-//     return count;
-// }
+fn solve2(Vec: type, T: type, start: u8, rows: []const T) u64 {
+    var counts: Vec = @splat(0);
+    counts[start] = 1;
+    const Width = @typeInfo(Vec).vector.len;
+
+    const zeros: Vec = @splat(0);
+    const shift_left_mask = comptime blk: {
+        var m: [Width]i32 = undefined;
+        // shift up items in 0..N-1
+        for (0..Width - 1) |i| m[i] = i + 1;
+        // last element from zeros Vector
+        m[Width - 1] = -1;
+        break :blk m;
+    };
+    const shift_right_mask = comptime blk: {
+        var m: [Width]i32 = undefined;
+        m[0] = -1;
+        for (1..Width) |i| m[i] = i - 1;
+        break :blk m;
+    };
+
+    for (rows) |splitter_bits| {
+        const split_mask: @Vector(Width, bool) = @bitCast(splitter_bits);
+        const hits = @select(u64, split_mask, counts, zeros);
+        const pass = @select(u64, split_mask, zeros, counts);
+
+        const left_move = @shuffle(u64, hits, zeros, shift_left_mask);
+        const right_move = @shuffle(u64, hits, zeros, shift_right_mask);
+        counts = pass + left_move + right_move;
+    }
+
+    return @reduce(.Add, counts);
+}
 pub fn main() !void {
     const f = try std.fs.cwd().openFile("/mnt/H/Programming/aoc/inputs/day7", .{});
     var reader_buf: [4096]u8 = undefined;
@@ -55,8 +71,8 @@ pub fn main() !void {
 
     std.debug.assert(start_row.len < 160);
     const Int = u160;
+    const Vector = @Vector(160, u64);
 
-    // std.debug.print("{s}\n", .{start_row});
     const start: u8 = @intCast(std.mem.indexOfScalar(u8, start_row, 'S').?);
 
     var rows: [256]Int = undefined;
@@ -68,15 +84,15 @@ pub fn main() !void {
         };
         if (row.len == 0) break;
         reader.interface.toss(1);
+        // Parse splitters into integers
         if (parseRow(Int, row)) |encoding| {
             rows[i] = encoding;
             i += 1;
         }
     }
     const splitters = rows[0..i];
-    std.debug.print("Array length: {}\n", .{splitters.len});
-    const count_splits = solve(Int, start, splitters);
-    std.debug.print("{d}\n", .{count_splits});
+    std.debug.print("{d}\n", .{solve(Int, start, splitters)});
+    std.debug.print("{d}\n", .{solve2(Vector, Int, start, splitters)});
 
     {
         // otherwise compiler optimises away the loops below beaceuse constant arguments to fn?
@@ -101,19 +117,24 @@ pub fn main() !void {
         std.debug.print("Average: {} cycles\n", .{avg_cycles});
         std.debug.print("Total: {} cycles\n", .{elapsed_cycles});
     }
-    // std.debug.print("VECTOR\n", .{});
-    // {
-    //     const start_cycles = rdtsc();
-    //     var j: usize = 0;
-    //     while (j < num_runs) : (j += 1) {
-    //         std.mem.doNotOptimizeAway(@call(.never_inline, solve_v, .{ start, splitters }));
-    //     }
-    //     const end_cycles = rdtsc();
-    //     const elapsed_cycles = end_cycles - start_cycles;
-    //     const avg_cycles = @divFloor(elapsed_cycles, num_runs);
-    //     std.debug.print("Average: {} cycles\n", .{avg_cycles});
-    //     std.debug.print("Total: {} cycles\n", .{elapsed_cycles});
-    // }
+    {
+        const start_ns = std.time.nanoTimestamp();
+        const start_cycles = rdtsc();
+        var j: usize = 0;
+        while (j < num_runs) : (j += 1) {
+            std.mem.doNotOptimizeAway(@call(.never_inline, solve2, .{ Vector, Int, start, splitters }));
+        }
+        const end_cycles = rdtsc();
+        const end_ns = std.time.nanoTimestamp();
+        const elapsed_cycles = end_cycles - start_cycles;
+        const avg_cycles = @divFloor(elapsed_cycles, num_runs);
+        const elapsed_ns = end_ns - start_ns;
+        const avg_ns = @divFloor(elapsed_ns, num_runs);
+        std.debug.print("Average: {} cycles\n", .{avg_cycles});
+        std.debug.print("Total: {} cycles\n", .{elapsed_cycles});
+        std.debug.print("Average: {} ns\n", .{avg_ns});
+        std.debug.print("Total: {} ns\n", .{elapsed_ns});
+    }
 }
 inline fn rdtsc() u64 {
     var lo: u32 = undefined;
