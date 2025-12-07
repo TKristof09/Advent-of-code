@@ -15,14 +15,15 @@ let clear_out s =
     aux s 0
 
 let locations = Aoc.read_to_map "day4" (fun c -> Char.equal c '@') |> Map.key_set
-
-let part1 () =
-    locations
-    |> Set.count ~f:(fun (x, y) -> count_neighbours x y locations < 4)
-    |> Printf.printf "Part 1: %d rolls can be removed\n"
-
-let part2 () = locations |> clear_out |> Printf.printf "Part 2: %d rolls can be removed\n"
+let part1 () = locations |> Set.count ~f:(fun (x, y) -> count_neighbours x y locations < 4)
+let part2 () = locations |> clear_out
 
 let () =
+    part1 () |> Printf.printf "Part 1: %d rolls can be removed\n";
+    part2 () |> Printf.printf "Part 2: %d rolls can be removed\n"
+
+let () =
+    Printf.printf "Part 1: ";
     Aoc.time_fn part1;
+    Printf.printf "Part 2: ";
     Aoc.time_fn part2

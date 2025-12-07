@@ -83,15 +83,15 @@ let solve2 nums ops =
         res + intermediate)
 
 let inp = Aoc.read_to_array "day6"
-
-let part1 () =
-    parse_input inp
-    |> Tuple2.uncurry solve
-    |> List.sum (module Int) ~f:Fun.id
-    |> Printf.printf "Part 1: %d\n"
-
-let part2 () = parse_input2 inp |> Tuple2.uncurry solve2 |> Printf.printf "Part 2: %d\n"
+let part1 () = parse_input inp |> Tuple2.uncurry solve |> List.sum (module Int) ~f:Fun.id
+let part2 () = parse_input2 inp |> Tuple2.uncurry solve2
 
 let () =
+    part1 () |> Printf.printf "Part 1: %d\n";
+    part2 () |> Printf.printf "Part 2: %d\n"
+
+let () =
+    Printf.printf "Part 1: ";
     Aoc.time_fn part1;
+    Printf.printf "Part 2: ";
     Aoc.time_fn part2

@@ -47,5 +47,15 @@ let solve2 (l : rot list) =
               (res, new_val))
     |> fst
 
-let () = Aoc.read_to_list "day1" |> parse |> solve |> Printf.printf "Password: %d\n"
-let () = Aoc.read_to_list "day1" |> parse |> solve2 |> Printf.printf "Password 2: %d\n"
+let part1 () = Aoc.read_to_list "day1" |> parse |> solve
+let part2 () = Aoc.read_to_list "day1" |> parse |> solve2
+
+let () =
+    part1 () |> Printf.printf "Password: %d\n";
+    part2 () |> Printf.printf "Password 2: %d\n"
+
+let () =
+    Printf.printf "Part 1: ";
+    Aoc.time_fn part1;
+    Printf.printf "Part 2: ";
+    Aoc.time_fn part2

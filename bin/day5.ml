@@ -40,7 +40,6 @@ let part1 () =
     List.drop inp (List.length intervals + 1)
     |> List.map ~f:Int.of_string
     |> List.count ~f:(fun id -> List.exists intervals ~f:(is_inside id))
-    |> Printf.printf "Part 1: %d fresh IDs\n"
 
 let part2 () =
     inp
@@ -57,8 +56,13 @@ let part2 () =
           1)
     |> reduce_intervals
     |> List.sum (module Int) ~f:interval_size
-    |> Printf.printf "Part 2: %d fresh IDs\n"
 
 let () =
+    part1 () |> Printf.printf "Part 1: %d fresh IDs\n";
+    part2 () |> Printf.printf "Part 2: %d fresh IDs\n"
+
+let () =
+    Printf.printf "Part 1: ";
     Aoc.time_fn part1;
+    Printf.printf "Part 2: ";
     Aoc.time_fn part2

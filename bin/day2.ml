@@ -53,7 +53,7 @@ let get_repeating (start, stop) ~len_rep ~len_full =
     |> IterLabels.map ~f:(fun i -> Int.to_string i |> gen_number)
     |> IterLabels.filter ~f:(fun n -> start_n <= n && n <= end_n)
 
-let solve1 () =
+let part1 () =
     Aoc.read_to_list "day2"
     |> List.hd_exn
     |> String.split ~on:','
@@ -66,9 +66,8 @@ let solve1 () =
             else
               res))
     |> List.sum (module Int) ~f:Fun.id
-    |> Printf.printf "Part 1 Sum: %d\n"
 
-let solve1_fast () =
+let part1_fast () =
     Aoc.read_to_list "day2"
     |> List.hd_exn
     |> String.split ~on:','
@@ -81,9 +80,8 @@ let solve1_fast () =
         get_repeating (start, stop) ~len_rep:(l / 2) ~len_full:l)
     |> IterLabels.fold ~init:Int.Set.empty ~f:Set.add
     |> Set.sum (module Int) ~f:Fun.id
-    |> Printf.printf "Part 1 Sum: %d   (fast)\n"
 
-let solve2 () =
+let part2 () =
     Aoc.read_to_list "day2"
     |> List.hd_exn
     |> String.split ~on:','
@@ -97,9 +95,8 @@ let solve2 () =
             else
               res))
     |> Iter.sum
-    |> Printf.printf "Part 2 Sum: %d\n"
 
-let solve2_bis () =
+let part2_noregex () =
     Aoc.read_to_list "day2"
     |> List.hd_exn
     |> String.split ~on:','
@@ -113,9 +110,8 @@ let solve2_bis () =
             else
               res))
     |> Iter.sum
-    |> Printf.printf "Part 2 Sum: %d   (no regex)\n"
 
-let solve2_fast () =
+let part2_fast () =
     Aoc.read_to_list "day2"
     |> List.hd_exn
     |> String.split ~on:','
@@ -129,11 +125,22 @@ let solve2_fast () =
             get_repeating (start, stop) ~len_rep:l ~len_full:(String.length start)))
     |> IterLabels.fold ~init:Int.Set.empty ~f:Set.add
     |> Set.sum (module Int) ~f:Fun.id
-    |> Printf.printf "Part 2 Sum: %d   (fast)\n"
 
 let () =
-    Aoc.time_fn solve1;
-    Aoc.time_fn solve1_fast;
-    Aoc.time_fn solve2;
-    Aoc.time_fn solve2_bis;
-    Aoc.time_fn solve2_fast
+    part1 () |> Printf.printf "Part 1 Sum: %d\n";
+    part1_fast () |> Printf.printf "Part 1 Sum: %d    (fast) \n";
+    part2 () |> Printf.printf "Part 2 Sum: %d\n";
+    part2_noregex () |> Printf.printf "Part 2 Sum: %d    (no regex) \n";
+    part2_fast () |> Printf.printf "Part 2 Sum: %d    (fast) \n"
+
+let () =
+    Printf.printf "Part 1: ";
+    Aoc.time_fn part1;
+    Printf.printf "Part 1 (fast): ";
+    Aoc.time_fn part1_fast;
+    Printf.printf "Part 2: ";
+    Aoc.time_fn part2;
+    Printf.printf "Part 2 (no regex): ";
+    Aoc.time_fn part2_noregex;
+    Printf.printf "Part 2 (fast): ";
+    Aoc.time_fn part2_fast

@@ -16,21 +16,20 @@ let find_max s num_digits =
     aux (num_digits - 1) s
     |> List.foldi ~init:0 ~f:(fun idx res d -> res + (d * Int.pow 10 (num_digits - idx - 1)))
 
-let part_1 () =
-    Aoc.read_to_list "day3"
-    |> List.sum (module Int) ~f:(fun s -> find_max s 2)
-    |> Printf.printf "Part 1: %d\n"
+let part1 () = Aoc.read_to_list "day3" |> List.sum (module Int) ~f:(fun s -> find_max s 2)
+let part2 () = Aoc.read_to_list "day3" |> List.sum (module Int) ~f:(fun s -> find_max s 12)
 
-let part_2 () =
-    Aoc.read_to_list "day3"
-    |> List.sum (module Int) ~f:(fun s -> find_max s 12)
-    |> Printf.printf "Part 2: %d\n"
 (* let () = *)
 (*     Aoc.read_to_list "day3" *)
 (*     |> List.map ~f:(fun s -> find_max s 12) *)
 (*     |> [%derive.show: int list] *)
 (*     |> Printf.printf "%s\n" *)
+let () =
+    part1 () |> Printf.printf "Part 1: %d\n";
+    part2 () |> Printf.printf "Part 2: %d\n"
 
 let () =
-    Aoc.time_fn part_1;
-    Aoc.time_fn part_2
+    Printf.printf "Part 1: ";
+    Aoc.time_fn part1;
+    Printf.printf "Part 2: ";
+    Aoc.time_fn part2
