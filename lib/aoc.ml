@@ -73,10 +73,10 @@ let show_binary =
 
 let time_fn f =
     let t_start = Time_ns.now () in
-    f ();
+    f () |> ignore;
     let t_end = Time_ns.now () in
     let dur = Time_ns.diff t_end t_start |> Time_ns.Span.to_ms in
-    Printf.printf "Execution took %.2f ms\n" dur
+    Printf.printf "Execution took %.3f ms\n" dur
 
 let eight_neighbours x y =
     [
