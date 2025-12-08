@@ -1,25 +1,10 @@
 open Core
 
-module Triplet = struct
-  module T = struct
-    type t = int * int * int [@@deriving compare, sexp, hash, show]
-  end
-
-  include T
-  include Comparable.Make_plain (T)
-  include Hashable.Make_plain (T)
-
-  let of_list l : t =
-      match l with
-      | [ x; y; z ] -> (x, y, z)
-      | _ -> failwith "Invalid argument length"
-
-  let map ((x, y, z) : t) ~f : t = (f x, f y, f z)
-end
-
 let parse arr =
     Array.map arr ~f:(fun s ->
-        String.split s ~on:',' |> List.map ~f:Int.of_string |> Triplet.of_list)
+        match String.split s ~on:',' |> List.map ~f:Int.of_string with
+        | [ x; y; z ] -> (x, y, z)
+        | _ -> assert false)
 
 let distance p p' =
     let x, y, z = p in
@@ -30,7 +15,7 @@ let distance p p' =
     (dx * dx) + (dy * dy) + (dz * dz)
 
 let connected_comps size pairs =
-    let adjacency = Hashtbl.create ~size (module Triplet) in
+    let adjacency = Hashtbl.create ~size (module Int) in
     IterLabels.iter pairs ~f:(fun (p, p') ->
         Hashtbl.update adjacency p ~f:(fun neighbours ->
             match neighbours with
@@ -54,46 +39,30 @@ let connected_comps size pairs =
         match Set.choose remaining with
         | None -> acc
         | Some x ->
-            let comp = dfs (Set.empty (module Triplet)) [ x ] in
+            let comp = dfs (Set.empty (module Int)) [ x ] in
             loop (Set.diff remaining comp) (comp :: acc)
     in
-    loop (Set.of_hashtbl_keys (module Triplet) adjacency) []
-
-let is_complete size adjacency =
-    let visited = Hashtbl.create (module Int) in
-    let rec dfs stack =
-        match stack with
-        | [] -> ()
-        | p :: t -> (
-            match Hashtbl.add visited ~key:p ~data:() with
-            | `Ok ->
-                let neighbours = Hashtbl.find_exn adjacency p in
-                dfs (neighbours @ stack)
-            | `Duplicate -> dfs t)
-    in
-    dfs [ Hashtbl.choose_exn adjacency |> fst ];
-    Hashtbl.length visited = size
+    loop (Set.of_hashtbl_keys (module Int) adjacency) []
 
 let inp = Aoc.read_to_array "day8"
-let grid_size = 300
-
-let print_hashtbl htbl =
-    Hashtbl.iteri htbl ~f:(fun ~key ~data ->
-        Printf.printf "%s -> %s\n" (Triplet.show key) ([%derive.show: Triplet.t list] data))
 
 let part1 num_connections =
     let points = parse inp in
-    let pairs =
-        Iter.int_range ~start:0 ~stop:(Array.length points - 1)
-        |> Iter.diagonal
-        |> IterLabels.map ~f:(fun (i, j) -> (i, j, distance points.(i) points.(j)))
-        |> IterLabels.sort ~cmp:(fun (_, _, d) (_, _, d') -> Int.compare d d')
-        |> Iter.take num_connections
-        |> IterLabels.map ~f:(fun (i, j, d) -> (points.(i), points.(j)))
+    let heap =
+        Pairing_heap.create
+          ~min_size:(Array.length points * Array.length points / 2)
+          ~cmp:(fun (_, _, d) (_, _, d') -> Int.compare d d')
+          ()
     in
+    Iter.int_range ~start:0 ~stop:(Array.length points - 1)
+    |> Iter.diagonal
+    |> IterLabels.map ~f:(fun (i, j) -> (i, j, distance points.(i) points.(j)))
+    |> IterLabels.iter ~f:(Pairing_heap.add heap);
     (* pairs |> Iter.to_string [%derive.show: Triplet.t * Triplet.t] |> Printf.printf "%s\n"; *)
     let circuits =
-        pairs
+        IterLabels.init ~f:(fun _ -> Pairing_heap.pop_exn heap)
+        |> IterLabels.map ~f:(fun (i, j, _) -> (i, j))
+        |> Iter.take num_connections
         |> connected_comps num_connections
         |> List.sort ~compare:(fun comp comp' -> Int.compare (Set.length comp') (Set.length comp))
     in
@@ -105,31 +74,50 @@ let part1 num_connections =
 
 let part2 () =
     let points = parse inp in
-    let pairs =
-        Iter.int_range ~start:0 ~stop:(Array.length points - 1)
-        |> Iter.diagonal
-        |> IterLabels.map ~f:(fun (i, j) -> (i, j, distance points.(i) points.(j)))
-        |> IterLabels.sort ~cmp:(fun (_, _, d) (_, _, d') -> Int.compare d d')
-        (* |> IterLabels.map ~f:(fun (i, j, d) -> (points.(i), points.(j))) *)
-        |> IterLabels.map ~f:(fun (i, j, _) -> (i, j))
+    let heap =
+        Pairing_heap.create
+          ~min_size:(Array.length points * Array.length points / 2)
+          ~cmp:(fun (_, _, d) (_, _, d') -> Int.compare d d')
+          ()
     in
-    let adjacency = Hashtbl.create ~size:(Array.length points) (module Int) in
+    let groups = Hashtbl.create ~size:(Array.length points) (module Int) in
+    Iter.int_range ~start:0 ~stop:(Array.length points - 1)
+    |> Iter.diagonal
+    |> IterLabels.map ~f:(fun (i, j) -> (i, j, distance points.(i) points.(j)))
+    |> IterLabels.iter ~f:(Pairing_heap.add heap);
     let last_connection =
-        pairs
-        |> IterLabels.find_pred_exn ~f:(fun (i, j) ->
-            Hashtbl.update adjacency i ~f:(fun neighbours ->
-                match neighbours with
-                | None -> [ j ]
-                | Some l -> j :: l);
-            Hashtbl.update adjacency j ~f:(fun neighbours ->
-                match neighbours with
-                | None -> [ i ]
-                | Some l -> i :: l);
-            is_complete (Array.length points) adjacency)
-        |> Tuple2.map ~f:(Array.get points)
+        IterLabels.init ~f:(fun _ -> Pairing_heap.pop_exn heap)
+        |> IterLabels.find_pred_exn ~f:(fun (i, j, _) ->
+            let g1 =
+                Hashtbl.find_or_add groups i ~default:(fun () ->
+                    let s = Hash_set.create (module Int) in
+                    Hash_set.add s i;
+                    s)
+            in
+            let g2 =
+                Hashtbl.find_or_add groups j ~default:(fun () ->
+                    let s = Hash_set.create (module Int) in
+                    Hash_set.add s j;
+                    s)
+            in
+            (* if j is in i's group already then no need to merge since they are the same groups *)
+            (* else merge smaller group into the bigger group *)
+            if Hash_set.mem g1 j then
+              false
+            else if Hash_set.length g1 > Hash_set.length g2 then (
+              Hash_set.iter g2 ~f:(fun p ->
+                  Hash_set.add g1 p;
+                  Hashtbl.set groups ~key:p ~data:g1);
+              Hash_set.length g1 = Array.length points)
+            else (
+              Hash_set.iter g1 ~f:(fun p ->
+                  Hash_set.add g2 p;
+                  Hashtbl.set groups ~key:p ~data:g2);
+              Hash_set.length g2 = Array.length points))
     in
-    (* last_connection |> [%derive.show: Triplet.t * Triplet.t] |> Printf.printf "%s\n"; *)
-    let (x, _, _), (x', _, _) = last_connection in
+    let i, j, _ = last_connection in
+    let x, _, _ = points.(i) in
+    let x', _, _ = points.(j) in
     x * x'
 
 let () =
