@@ -26,29 +26,37 @@ let is_edge_fully_inside (vert_intervals, horiz_intervals) (x, y) (x', y') =
       |> List.exists ~f:(fun (start, stop) -> start <= min x x' && max x x' <= stop)
 
 let precalc_intervals reds borders =
-    let (min_x, min_y), (max_x, max_y) =
-        List.fold reds
-          ~init:((Int.max_value, Int.max_value), (0, 0))
-          ~f:(fun ((min_x, min_y), (max_x, max_y)) (x, y) ->
-            ((min min_x x, min min_y y), (max max_x x, max max_y y)))
-    in
     let vert = Hashtbl.create (module Int) in
 
     let horiz = Hashtbl.create (module Int) in
-    List.iter reds ~f:(fun (x, y) ->
+
+    let x_sorted = List.dedup_and_sort reds ~compare:(fun (x, _) (x', _) -> Int.compare x x') in
+    let y_sorted = List.dedup_and_sort reds ~compare:(fun (_, y) (_, y') -> Int.compare y y') in
+    List.iter y_sorted ~f:(fun (_, y) ->
         Hashtbl.update horiz y ~f:(fun d ->
             match d with
             | None ->
-                Iter.int_range ~start:min_x ~stop:max_x
-                |> IterLabels.filter ~f:(fun curr_x -> is_inside borders (curr_x, y))
-                |> IterLabels.fold ~init:Int_set.empty ~f:Int_set.add
-            | Some s -> s);
+                List.fold (List.tl_exn x_sorted)
+                  ~init:(Int_set.empty, fst (List.hd_exn x_sorted))
+                  ~f:(fun (s, last_x) (x, _) ->
+                    if is_inside borders (last_x + ((x - last_x) / 2), y) then
+                      (Int_set.add_range s last_x x, x)
+                    else
+                      (s, x))
+                |> fst
+            | Some s -> s));
+    List.iter x_sorted ~f:(fun (x, _) ->
         Hashtbl.update vert x ~f:(fun d ->
             match d with
             | None ->
-                Iter.int_range ~start:min_y ~stop:max_y
-                |> IterLabels.filter ~f:(fun curr_y -> is_inside borders (x, curr_y))
-                |> IterLabels.fold ~init:Int_set.empty ~f:Int_set.add
+                List.fold (List.tl_exn y_sorted)
+                  ~init:(Int_set.empty, snd (List.hd_exn y_sorted))
+                  ~f:(fun (s, last_y) (_, y) ->
+                    if is_inside borders (x, last_y + ((y - last_y) / 2)) then
+                      (Int_set.add_range s last_y y, y)
+                    else
+                      (s, y))
+                |> fst
             | Some s -> s));
     (vert, horiz)
 
@@ -168,8 +176,8 @@ let part22 () =
 
 let () =
     part1 ();
-    part2 ()
+    part22 ()
 
 let () =
     Aoc.time_fn part1;
-    Aoc.time_fn part2
+    Aoc.time_fn part22
