@@ -14,6 +14,44 @@ let is_inside (vert_edges, horiz_edges) (x, y) =
           else
             let num_passings = Set.count s ~f:(fun x' -> x' <= x) in
             num_passings mod 2 = 1
+
+let is_edge_fully_inside (vert_intervals, horiz_intervals) (x, y) (x', y') =
+    if x = x' then
+      let s = Hashtbl.find_exn vert_intervals x in
+      Int_set.ranges s
+      |> List.exists ~f:(fun (start, stop) -> start <= min y y' && max y y' <= stop)
+    else
+      let s = Hashtbl.find_exn horiz_intervals y in
+      Int_set.ranges s
+      |> List.exists ~f:(fun (start, stop) -> start <= min x x' && max x x' <= stop)
+
+let precalc_intervals reds borders =
+    let (min_x, min_y), (max_x, max_y) =
+        List.fold reds
+          ~init:((Int.max_value, Int.max_value), (0, 0))
+          ~f:(fun ((min_x, min_y), (max_x, max_y)) (x, y) ->
+            ((min min_x x, min min_y y), (max max_x x, max max_y y)))
+    in
+    let vert = Hashtbl.create (module Int) in
+
+    let horiz = Hashtbl.create (module Int) in
+    List.iter reds ~f:(fun (x, y) ->
+        Hashtbl.update horiz y ~f:(fun d ->
+            match d with
+            | None ->
+                Iter.int_range ~start:min_x ~stop:max_x
+                |> IterLabels.filter ~f:(fun curr_x -> is_inside borders (curr_x, y))
+                |> IterLabels.fold ~init:Int_set.empty ~f:Int_set.add
+            | Some s -> s);
+        Hashtbl.update vert x ~f:(fun d ->
+            match d with
+            | None ->
+                Iter.int_range ~start:min_y ~stop:max_y
+                |> IterLabels.filter ~f:(fun curr_y -> is_inside borders (x, curr_y))
+                |> IterLabels.fold ~init:Int_set.empty ~f:Int_set.add
+            | Some s -> s));
+    (vert, horiz)
+
 let get_borders reds =
     (* y -> borders on that row *)
     let vert_edges = Hashtbl.create (module Int) in
@@ -102,6 +140,28 @@ let part2 () =
     |> IterLabels.drop_while ~f:(fun (p, p', _) ->
         let points = gen_rectangle_borders p p' in
         IterLabels.exists points ~f:(fun p -> not (is_inside borders p)))
+    |> Iter.head_exn
+    |> Tuple3.get3
+    |> Printf.printf "Part 2: %d\n"
+
+let part22 () =
+    let reds =
+        inp |> List.map ~f:(fun s -> String.lsplit2_exn s ~on:',' |> Tuple2.map ~f:Int.of_string)
+    in
+    let borders = get_borders reds in
+    let intervals = precalc_intervals reds borders in
+    reds
+    |> Iter.diagonal_l
+    |> IterLabels.map ~f:(fun ((x, y), (x', y')) ->
+        let dx = abs (x' - x) + 1 in
+        let dy = abs (y' - y) + 1 in
+        ((x, y), (x', y'), dx * dy))
+    |> Iter.sort ~cmp:(fun (_, _, a) (_, _, b) -> Int.compare b a)
+    |> IterLabels.drop_while ~f:(fun ((x, y), (x', y'), _) ->
+        let edges =
+            [ ((x, y), (x', y)); ((x, y'), (x', y')); ((x, y), (x, y')); ((x', y), (x', y')) ]
+        in
+        List.exists edges ~f:(fun (p, p') -> not (is_edge_fully_inside intervals p p')))
     |> Iter.head_exn
     |> Tuple3.get3
     |> Printf.printf "Part 2: %d\n"
