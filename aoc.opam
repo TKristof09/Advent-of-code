@@ -19,6 +19,8 @@ depends: [
   "imagelib"
   "ppx_deriving"
   "pcre"
+  "lp"
+  "lp-glpk"
   "odoc" {with-doc}
 ]
 build: [
