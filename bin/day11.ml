@@ -23,10 +23,23 @@ let rec dfs graph cache cur goal =
           Hashtbl.set cache ~key:cur ~data:num_paths;
           num_paths
 
+(* let dfs_non_rec graph goal self cur = *)
+(*     if String.equal cur goal then *)
+(*       1 *)
+(*     else *)
+(*       let num_paths = *)
+(*           Hashtbl.find graph cur *)
+(*           |> Option.value ~default:[] *)
+(*           |> List.sum (module Int) ~f:(fun node -> self node) *)
+(*       in *)
+(*       num_paths *)
+(* let dfs_memo graph goal = Memo.recursive ~hashable:String.hashable (dfs_non_rec graph goal) *)
+
 let inp = Aoc.read_to_list "day11"
 
 let part1 () =
     let graph = parse inp in
+    (* dfs_memo graph "out" "you" *)
     dfs graph (Hashtbl.create ~size:1000 (module String)) "you" "out"
 
 let part2 () =
